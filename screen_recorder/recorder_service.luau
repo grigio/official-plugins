@@ -115,7 +115,7 @@ local function notifyRecordingSavedIfPresent()
             return
         end
 
-        noctalia.notify("Recording saved", savedPath)
+        noctalia.notify(noctalia.tr("notify.recording-saved"), savedPath)
         if cfg("copy_to_clipboard") then
             copyToClipboard(savedPath)
         end
@@ -147,7 +147,7 @@ local function resolveVideoSource(errorTitle, focusedOutputName)
 
     local monitor = focusedOutputName
     if monitor == nil or monitor == "" then
-        noctalia.notifyError(errorTitle, "Could not detect focused monitor")
+        noctalia.notifyError(errorTitle, noctalia.tr("notify.no-monitor"))
         return nil
     end
 
@@ -180,7 +180,7 @@ elif command -v flatpak >/dev/null 2>&1 && _gpuscreenrecorder_flatpak_installed;
 end
 
 local function buildRecordCommand(focusedOutputName)
-    local source = resolveVideoSource("Recording failed", focusedOutputName)
+    local source = resolveVideoSource(noctalia.tr("notify.recording-failed"), focusedOutputName)
     if source == nil then return nil end
 
     local dir = outputDirectory()
@@ -204,7 +204,7 @@ local function buildRecordCommand(focusedOutputName)
 end
 
 local function buildReplayCommand(focusedOutputName)
-    local source = resolveVideoSource("Replay failed", focusedOutputName)
+    local source = resolveVideoSource(noctalia.tr("notify.replay-failed"), focusedOutputName)
     if source == nil then return nil end
 
     local dir = outputDirectory()
@@ -277,7 +277,7 @@ local function startRecording(focusedOutputName)
 
         if not portalAvailable then
             setState("idle")
-            noctalia.notifyError("Recording failed", "xdg-desktop-portal is not running")
+            noctalia.notifyError(noctalia.tr("notify.recording-failed"), noctalia.tr("notify.portal-not-running"))
             updateDisplay()
             return
         end
@@ -291,7 +291,7 @@ local function startRecording(focusedOutputName)
 
         if not noctalia.runAsync(cmd) then
             setState("idle")
-            noctalia.notifyError("Recording failed", "Could not launch gpu-screen-recorder")
+            noctalia.notifyError(noctalia.tr("notify.recording-failed"), noctalia.tr("notify.launch-failed"))
             updateDisplay()
         end
     end)
@@ -326,7 +326,7 @@ local function startReplay(focusedOutputName)
 
         if not portalAvailable then
             setState("idle")
-            noctalia.notifyError("Replay failed", "xdg-desktop-portal is not running")
+            noctalia.notifyError(noctalia.tr("notify.replay-failed"), noctalia.tr("notify.portal-not-running"))
             updateDisplay()
             return
         end
@@ -340,7 +340,7 @@ local function startReplay(focusedOutputName)
 
         if not noctalia.runAsync(cmd) then
             setState("idle")
-            noctalia.notifyError("Replay failed", "Could not launch gpu-screen-recorder")
+            noctalia.notifyError(noctalia.tr("notify.replay-failed"), noctalia.tr("notify.launch-failed"))
             updateDisplay()
         end
     end)
@@ -353,13 +353,13 @@ local function stopReplay()
     noctalia.runAsync("(sleep 3 && pkill -9 -f 'gpu-screen-recorder.*-r ' 2>/dev/null || true) &")
 
     setState("idle")
-    noctalia.notify("Replay buffer stopped")
+    noctalia.notify(noctalia.tr("notify.replay-stopped"))
 end
 
 local function saveReplay()
     if state ~= "replaying" then return end
     noctalia.runAsync("pkill -SIGUSR1 -f 'gpu-screen-recorder.*-r ' 2>/dev/null || true")
-    noctalia.notify("Replay saved")
+    noctalia.notify(noctalia.tr("notify.replay-saved"))
 end
 
 -- ── State polling ────────────────────────────────────────────────────────
@@ -379,7 +379,7 @@ local function checkProcessState(processState)
         if pendingTick >= PENDING_TICKS then
             if processState == "replaying" then
                 setState("replaying")
-                noctalia.notify("Replay buffer active")
+                noctalia.notify(noctalia.tr("notify.replay-active"))
             else
                 setState("idle")
             end
@@ -392,7 +392,7 @@ local function checkProcessState(processState)
     elseif state == "replaying" then
         if processState ~= "replaying" then
             setState("idle")
-            noctalia.notify("Replay buffer stopped")
+            noctalia.notify(noctalia.tr("notify.replay-stopped"))
         end
     elseif state == "idle" then
         if processState ~= nil then
